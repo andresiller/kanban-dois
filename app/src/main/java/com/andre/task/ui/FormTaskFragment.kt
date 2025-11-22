@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.view.isVisible
+import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.andre.task.R
@@ -32,6 +33,8 @@ class FormTaskFragment : Fragment() {
     private lateinit var reference: DatabaseReference
     private lateinit var auth: FirebaseAuth
     private val args: FormTaskFragmentArgs by navArgs()
+    private val viewModel: TaskViewModel by activityViewModels()
+
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -51,14 +54,20 @@ class FormTaskFragment : Fragment() {
         auth = Firebase.auth
 
         getArgs()
+
         initListener()
     }
 
-    private fun getArgs(){
-        args.task.let {
-            if (it != null){
-                this.task = it
-            }
+    private fun getArgs() {
+        val receivedTask = args.task
+
+        if (receivedTask != null) {
+            task = receivedTask
+            newTask = false
+            configTask()
+        } else {
+            newTask = true
+            task = Task()
         }
     }
 
@@ -84,10 +93,10 @@ class FormTaskFragment : Fragment() {
             valideData()
         }
 
-        binding.radioGroup.setOnCheckedChangeListener{ _, id-> status =
+        binding.radioGroup.setOnCheckedChangeListener{ _binding, id-> status =
             when(id){
                 R.id.rbTodo -> Status.TODO
-                R.id.rbTodo -> Status.DOING
+                R.id.rbDoing -> Status.DOING
                 else -> Status.DONE
             }
 
@@ -130,6 +139,8 @@ class FormTaskFragment : Fragment() {
                         findNavController().popBackStack()
 
                     }else{
+                        viewModel.setUpdateTask(task)
+
                         binding.progressBar.isVisible = false
                     }
                 }else{

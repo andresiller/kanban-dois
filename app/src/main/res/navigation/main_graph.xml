@@ -75,6 +75,7 @@
         <argument
             android:name="task"
             app:argType="com.andre.task.data.model.Task"
-            app:nullable="true" />
+            app:nullable="true"
+            android:defaultValue="@null"/>
     </fragment>
 </navigation>

@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.view.isVisible
+import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.andre.task.R
@@ -34,6 +35,9 @@ class DoingFragment : Fragment() {
     private lateinit var reference: DatabaseReference
     private lateinit var auth: FirebaseAuth
 
+    private val viewModel: TaskViewModel by activityViewModels()
+
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -54,7 +58,27 @@ class DoingFragment : Fragment() {
 
     private fun initListeners(){
         binding.floatingActionButton2.setOnClickListener {
+            val action = HomeFragmentDirections.actionHomeFragmentToFormTaskFragment(null)
             findNavController().navigate(R.id.action_homeFragment_to_formTaskFragment)
+        }
+
+        observerViewModel()
+    }
+
+    private fun observerViewModel(){
+        viewModel.taskUpdate.observe(viewLifecycleOwner){ updateTask ->
+            if(updateTask.status == Status.TODO){
+                val oldList = taskAdapter.currentList
+
+                val newList = oldList.toMutableList().apply {
+                    find {it.id == updateTask.id}?.description = updateTask.description
+                }
+
+                val position = newList.indexOfFirst { it.id == updateTask.id }
+
+                taskAdapter.submitList(newList)
+                taskAdapter.notifyItemChanged(position)
+            }
         }
     }
 
@@ -124,6 +148,8 @@ class DoingFragment : Fragment() {
             }
     }
 
+
+
     private fun optionSelected(task: Task, option:Int){
         when (option){
             TaskAdapter.SELECT_REMOVER -> {
@@ -138,6 +164,7 @@ class DoingFragment : Fragment() {
             TaskAdapter.SELECT_EDIT -> {
                 val action = HomeFragmentDirections.actionHomeFragmentToFormTaskFragment(task)
                 findNavController().navigate(action)
+
             }
             TaskAdapter.SELECT_DETAILS -> {
                 Toast.makeText(requireContext(), "Detalhes ${task.description}", Toast.LENGTH_SHORT).show()

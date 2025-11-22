@@ -27,7 +27,7 @@
 
     <string name="description_empty_form_task_fragment">Preencha uma descrição!</string>
     <string name="description_text">Descrição</string>
-    <string name="title_nova_tarefa_formtask_fragment">Nova tarefa</string>
+    <string name="title_nova_tarefa_formtask_fragment">Tarefa</string>
     <string name="hint_edit_description">Informe sua nova tarefa</string>
     <string name="title_status_radiogroup_formtask">Status</string>
     <string name="feita_radiobutton">Feita</string>
