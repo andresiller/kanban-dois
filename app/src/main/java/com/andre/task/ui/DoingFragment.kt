@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.view.isVisible
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.andre.task.R
@@ -13,6 +14,15 @@ import com.andre.task.data.model.Status
 import com.andre.task.data.model.Task
 import com.andre.task.databinding.FragmentDoingBinding
 import com.andre.task.ui.adapter.TaskAdapter
+import com.andre.task.util.showBottomSheet
+import com.google.firebase.Firebase
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.auth
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.database
 
 class DoingFragment : Fragment() {
 
@@ -20,6 +30,9 @@ class DoingFragment : Fragment() {
     private val binding get() = _binding!!
 
     private lateinit var taskAdapter: TaskAdapter
+
+    private lateinit var reference: DatabaseReference
+    private lateinit var auth: FirebaseAuth
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -32,8 +45,11 @@ class DoingFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        reference = Firebase.database.reference
+        auth = Firebase.auth
         initListeners()
-        initRecyclerViewTask(getTask())
+        initRecyclerViewTask()
+        getTask()
     }
 
     private fun initListeners(){
@@ -42,20 +58,86 @@ class DoingFragment : Fragment() {
         }
     }
 
-    private fun initRecyclerViewTask(taskList: List<Task>){
-        taskAdapter = TaskAdapter(requireContext(), taskList) {task, option -> optionSelected(task,option)}
-        binding.recyclerViewTask.layoutManager = LinearLayoutManager(requireContext())
-        binding.recyclerViewTask.setHasFixedSize(true)
-        binding.recyclerViewTask.adapter = taskAdapter
+    private fun initRecyclerViewTask(){
+        taskAdapter = TaskAdapter(requireContext()) { task, option -> optionSelected(task,option)}
+
+        with(binding.recyclerViewTask){
+            layoutManager = LinearLayoutManager(requireContext())
+            setHasFixedSize(true)
+            adapter = taskAdapter
+        }
     }
 
-    private fun optionSelected(task:Task, option: Int){
+    private fun getTask() {
+        reference
+            .child("tasks")
+            .child(auth.currentUser?.uid ?: "")
+            .orderByChild("status")
+            .equalTo("DOING")
+            .addValueEventListener(object : ValueEventListener {
+                override fun onDataChange(p0: DataSnapshot) {
+                    val taskList = mutableListOf<Task>()
+
+                    for (ds in p0.children) {
+                        val task = ds.getValue(Task::class.java)
+                        if (task != null) {
+                            taskList.add(task)
+                        }
+                    }
+                    binding.progressBar.isVisible=false
+                    listEmpty(taskList)
+                    taskAdapter.submitList(taskList)
+                }
+
+                override fun onCancelled(p0: DatabaseError) {
+                    Toast.makeText(requireContext(), R.string.error_generic, Toast.LENGTH_SHORT)
+                        .show()
+                }
+
+            })
+    }
+
+    private fun listEmpty(taskList: List<Task>){
+        binding.textInfo.text = if(taskList.isEmpty()){
+            getString(R.string.text_list_task_empty)
+        }else{
+            ""
+        }
+    }
+
+    private fun deleteTask(task: Task) {
+        reference
+            .child("tasks")
+            .child(auth.currentUser?.uid ?: "")
+            .child(task.id)
+            .removeValue().addOnCompleteListener { result ->
+                if (result.isSuccessful) {
+                    Toast.makeText(
+                        requireContext(),
+                        R.string.text_delete_sucess_task,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                } else {
+                    Toast.makeText(requireContext(), R.string.error_generic, Toast.LENGTH_SHORT)
+                        .show()
+                }
+            }
+    }
+
+    private fun optionSelected(task: Task, option:Int){
         when (option){
             TaskAdapter.SELECT_REMOVER -> {
-                Toast.makeText(requireContext(), "Removendo ${task.description}", Toast.LENGTH_SHORT).show()
+                showBottomSheet(titleDialog = R.string.text_title_dialog_delete,
+                    message = getString(R.string.text_message_dialog_delete),
+                    titleButton = R.string.text_button_dialog_confirm,
+                    onClick = {
+                        deleteTask(task)
+                    }
+                )
             }
             TaskAdapter.SELECT_EDIT -> {
-                Toast.makeText(requireContext(), "Editando ${task.description}", Toast.LENGTH_SHORT).show()
+                val action = HomeFragmentDirections.actionHomeFragmentToFormTaskFragment(task)
+                findNavController().navigate(action)
             }
             TaskAdapter.SELECT_DETAILS -> {
                 Toast.makeText(requireContext(), "Detalhes ${task.description}", Toast.LENGTH_SHORT).show()
@@ -63,19 +145,8 @@ class DoingFragment : Fragment() {
             TaskAdapter.SELECT_NEXT -> {
                 Toast.makeText(requireContext(), "Próximo", Toast.LENGTH_SHORT).show()
             }
-            TaskAdapter.SELECT_BACK -> {
-                Toast.makeText(requireContext(), "Anterior", Toast.LENGTH_SHORT).show()
-            }
         }
     }
-
-    private fun getTask() = listOf(
-        Task("0", "Corrigir bug no login de usuários", Status.DOING),
-        Task("1", "Criar tela de perfil com foto e bio", Status.DOING),
-        Task("2", "Adicionar suporte a modo escuro", Status.DOING),
-        Task("3", "Implementar notificações push", Status.DOING),
-        Task("4", "Configurar autenticação com Google e Facebook", Status.DOING),
-    )
 
     override fun onDestroyView() {
         super.onDestroyView()

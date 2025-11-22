@@ -2,8 +2,13 @@
     <string name="app_name">Task</string>
 
     <string name="text_info_recover_account_fragment">Informe seu email de cadastro para receber \n um link para alteração de senha.</string>
+    <string name="text_message_recover_account_fragment">Email de recuperação foi enviado</string>
     <string name="text_title_toolbar_recover_account_fragment">Recuperar conta</string>
     <string name="text_button_recover_account_fragment">Enviar</string>
+
+    <string name="text_title_dialog_confirm_logout">Deseja sair da sua conta?</string>
+    <string name="text_button_dialog_confirm_logout">Confirmar</string>
+    <string name="text_message_dialog_confirm_logout">Aperte em confirmar para sair da sua conta</string>
 
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="text_button_warning">Entendi</string>
@@ -33,12 +38,23 @@
     <string name="text_button_registeraccount_fragment">Criar conta</string>
 
     <string name="email_empty_register_fragment">Preencha um e-mail válido.</string>
-    <string name="password_empty_register_gragment">Preencha uma senha.</string>
+    <string name="password_empty_register_fragment">Preencha uma senha.</string>
     <string name="text_button_register_fragment">Enviar</string>
     <string name="text_title_toolbar_register_fragment">Criar conta</string>
 
     <string name="text_title_login_fragment">Login</string>
     <string name="text_button_register_login_fragment">Criar conta</string>
     <string name="text_button_recover_login_fragment">Recuperar conta</string>
+
+    <string name="text_save_sucess_form_task_fragment">Tarefa salva com sucesso!</string>
+    <string name="error_generic">Erro</string>
+
+    <string name="description_empty_fome_task_fragment">Preencha uma descrição!</string>
+    <string name="text_list_task_empty">Nenhum tarefa cadastrada!</string>
+    <string name="text_list_task_load">Aguarde, estamos carregando as informações</string>
+    <string name="text_delete_sucess_task">Tarefa removida com sucesso</string>
+    <string name="text_title_dialog_delete">Excluir tarefa</string>
+    <string name="text_message_dialog_delete">Deseja mesmo excluir a tarefa?</string>
+    <string name="text_button_dialog_confirm">Excluir</string>
 
 </resources>
